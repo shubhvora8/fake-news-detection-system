@@ -12,8 +12,8 @@ interface LegitimacyCompartmentProps {
 
 export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartmentProps) => {
   const getScoreColor = (score: number) => {
-    if (score >= 70) return "default";
-    if (score >= 40) return "secondary";
+    if (score >= 70) return "success";
+    if (score >= 40) return "warning";
     return "destructive";
   };
 
@@ -87,15 +87,19 @@ export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartment
               ) : (
                 <XCircle className="w-4 h-4 text-destructive" />
               )}
-              <span className="font-medium">BBC News</span>
+              <span className="font-medium">BBC News Verification</span>
             </div>
-            <Badge variant={data.bbcVerification.found ? "default" : "destructive"} className="text-xs">
+            <Badge variant={data.bbcVerification.found ? "success" : "destructive"} className="text-xs">
               {data.bbcVerification.found ? "FOUND" : "NOT FOUND"}
             </Badge>
           </div>
+
           {data.bbcVerification.found && (
             <>
               <Progress value={data.bbcVerification.similarity} className="h-2" />
+              <p className="text-sm text-muted-foreground">
+                {data.bbcVerification.similarity}% content similarity with BBC sources
+              </p>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {data.bbcVerification.matchingArticles.map(renderNewsSource)}
               </div>
@@ -112,15 +116,19 @@ export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartment
               ) : (
                 <XCircle className="w-4 h-4 text-destructive" />
               )}
-              <span className="font-medium">CNN News</span>
+              <span className="font-medium">CNN News Verification</span>
             </div>
-            <Badge variant={data.cnnVerification.found ? "default" : "destructive"} className="text-xs">
+            <Badge variant={data.cnnVerification.found ? "success" : "destructive"} className="text-xs">
               {data.cnnVerification.found ? "FOUND" : "NOT FOUND"}
             </Badge>
           </div>
+
           {data.cnnVerification.found && (
             <>
               <Progress value={data.cnnVerification.similarity} className="h-2" />
+              <p className="text-sm text-muted-foreground">
+                {data.cnnVerification.similarity}% content similarity with CNN sources
+              </p>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {data.cnnVerification.matchingArticles.map(renderNewsSource)}
               </div>
@@ -128,7 +136,7 @@ export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartment
           )}
         </div>
 
-        {/* ABC Verification */}
+        {/* ABC News Verification */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2">
@@ -137,15 +145,19 @@ export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartment
               ) : (
                 <XCircle className="w-4 h-4 text-destructive" />
               )}
-              <span className="font-medium">ABC News</span>
+              <span className="font-medium">ABC News Verification</span>
             </div>
-            <Badge variant={data.abcVerification.found ? "default" : "destructive"} className="text-xs">
+            <Badge variant={data.abcVerification.found ? "success" : "destructive"} className="text-xs">
               {data.abcVerification.found ? "FOUND" : "NOT FOUND"}
             </Badge>
           </div>
+
           {data.abcVerification.found && (
             <>
               <Progress value={data.abcVerification.similarity} className="h-2" />
+              <p className="text-sm text-muted-foreground">
+                {data.abcVerification.similarity}% content similarity with ABC News sources
+              </p>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {data.abcVerification.matchingArticles.map(renderNewsSource)}
               </div>
@@ -162,15 +174,19 @@ export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartment
               ) : (
                 <XCircle className="w-4 h-4 text-destructive" />
               )}
-              <span className="font-medium">The Guardian</span>
+              <span className="font-medium">The Guardian Verification</span>
             </div>
-            <Badge variant={data.guardianVerification.found ? "default" : "destructive"} className="text-xs">
+            <Badge variant={data.guardianVerification.found ? "success" : "destructive"} className="text-xs">
               {data.guardianVerification.found ? "FOUND" : "NOT FOUND"}
             </Badge>
           </div>
+
           {data.guardianVerification.found && (
             <>
               <Progress value={data.guardianVerification.similarity} className="h-2" />
+              <p className="text-sm text-muted-foreground">
+                {data.guardianVerification.similarity}% content similarity with Guardian sources
+              </p>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {data.guardianVerification.matchingArticles.map(renderNewsSource)}
               </div>
@@ -178,10 +194,21 @@ export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartment
           )}
         </div>
 
+        {/* Cross Reference Analysis */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-accent" />
+            <span className="font-medium">Cross-Reference Score</span>
+            <span className="text-sm text-muted-foreground">({data.crossReference.score}%)</span>
+          </div>
+          <Progress value={data.crossReference.score} className="h-2" />
+          <p className="text-sm text-muted-foreground">{data.crossReference.details}</p>
+        </div>
+
         {/* Overall Score */}
         <div className="pt-4 border-t">
           <div className="flex justify-between items-center">
-            <span className="font-medium">Overall Score</span>
+            <span className="font-medium">Overall Legitimacy Score</span>
             <span className="text-2xl font-bold text-accent">{data.overallScore}%</span>
           </div>
           <Progress value={data.overallScore} className="h-3 mt-2" />
