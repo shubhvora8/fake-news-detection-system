@@ -128,6 +128,56 @@ export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartment
           )}
         </div>
 
+        {/* ABC Verification */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              {data.abcVerification.found ? (
+                <CheckCircle className="w-4 h-4 text-success" />
+              ) : (
+                <XCircle className="w-4 h-4 text-destructive" />
+              )}
+              <span className="font-medium">ABC News</span>
+            </div>
+            <Badge variant={data.abcVerification.found ? "default" : "destructive"} className="text-xs">
+              {data.abcVerification.found ? "FOUND" : "NOT FOUND"}
+            </Badge>
+          </div>
+          {data.abcVerification.found && (
+            <>
+              <Progress value={data.abcVerification.similarity} className="h-2" />
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {data.abcVerification.matchingArticles.map(renderNewsSource)}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Guardian Verification */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              {data.guardianVerification.found ? (
+                <CheckCircle className="w-4 h-4 text-success" />
+              ) : (
+                <XCircle className="w-4 h-4 text-destructive" />
+              )}
+              <span className="font-medium">The Guardian</span>
+            </div>
+            <Badge variant={data.guardianVerification.found ? "default" : "destructive"} className="text-xs">
+              {data.guardianVerification.found ? "FOUND" : "NOT FOUND"}
+            </Badge>
+          </div>
+          {data.guardianVerification.found && (
+            <>
+              <Progress value={data.guardianVerification.similarity} className="h-2" />
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {data.guardianVerification.matchingArticles.map(renderNewsSource)}
+              </div>
+            </>
+          )}
+        </div>
+
         {/* Overall Score */}
         <div className="pt-4 border-t">
           <div className="flex justify-between items-center">

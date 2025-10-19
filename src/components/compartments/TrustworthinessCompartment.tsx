@@ -35,22 +35,70 @@ export const TrustworthinessCompartment = ({ data, isLoading }: TrustworthinessC
       </div>
 
       <div className="space-y-6">
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-sm">Bias Score</span>
-            <span className="text-sm font-medium">{data.languageAnalysis.bias}%</span>
+        {/* Language Analysis */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-sm">Language Analysis</h4>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm">Bias Score</span>
+              <span className="text-sm font-medium">{data.languageAnalysis.bias}%</span>
+            </div>
+            <Progress value={data.languageAnalysis.bias} className="h-2" />
           </div>
-          <Progress value={data.languageAnalysis.bias} className="h-2" />
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm">Credibility Score</span>
+              <span className="text-sm font-medium">{data.languageAnalysis.credibilityScore}%</span>
+            </div>
+            <Progress value={data.languageAnalysis.credibilityScore} className="h-2" />
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm">Emotional Tone</span>
+            <Badge variant="outline" className="text-xs">
+              {data.languageAnalysis.emotionalTone.toUpperCase()}
+            </Badge>
+          </div>
         </div>
 
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <span className="text-sm">Credibility</span>
-            <span className="text-sm font-medium">{data.languageAnalysis.credibilityScore}%</span>
+        {/* Factual Consistency */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-sm">Factual Consistency</h4>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm">Consistency Score</span>
+              <span className="text-sm font-medium">{data.factualConsistency.score}%</span>
+            </div>
+            <Progress value={data.factualConsistency.score} className="h-2" />
           </div>
-          <Progress value={data.languageAnalysis.credibilityScore} className="h-2" />
+          {data.factualConsistency.inconsistencies.length > 0 && (
+            <div className="space-y-2">
+              <span className="text-xs text-muted-foreground">Detected Issues:</span>
+              <ul className="space-y-1">
+                {data.factualConsistency.inconsistencies.map((issue, index) => (
+                  <li key={index} className="text-xs text-muted-foreground flex items-start gap-2">
+                    <span className="text-destructive">•</span>
+                    <span>{issue}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
 
+        {/* Source Credibility */}
+        <div className="space-y-3">
+          <h4 className="font-medium text-sm">Source Credibility</h4>
+          <div className="space-y-2">
+            <div className="flex justify-between">
+              <span className="text-sm">Reputation Score</span>
+              <span className="text-sm font-medium">{data.sourceCredibility.score}%</span>
+            </div>
+            <Progress value={data.sourceCredibility.score} className="h-2" />
+          </div>
+          <p className="text-xs text-muted-foreground">{data.sourceCredibility.reputation}</p>
+        </div>
+
+        {/* Overall Score */}
         <div className="pt-4 border-t">
           <div className="flex justify-between items-center">
             <span className="font-medium">Overall Score</span>
