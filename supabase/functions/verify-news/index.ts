@@ -77,19 +77,28 @@ Deno.serve(async (req) => {
 
       for (const query of queries) {
         console.log('Trying BBC search with:', query);
-        const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sources=bbc-news&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`;
+        const urls = [
+          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&domains=bbc.com,bbc.co.uk&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`,
+          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)} AND (bbc.com OR "BBC")&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`
+        ];
 
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
+        for (const url of urls) {
+          try {
+            const response = await fetch(url);
             const data = await response.json();
+            
+            if (!response.ok) {
+              console.error('BBC NewsAPI error:', data.message || data.code);
+              continue;
+            }
+            
             if (data.articles && data.articles.length > 0) {
               console.log('BBC search successful with query:', query, 'Found:', data.articles.length);
               return data.articles;
             }
+          } catch (error) {
+            console.error('BBC search error:', error);
           }
-        } catch (error) {
-          console.error('BBC search error:', error);
         }
       }
 
@@ -105,19 +114,29 @@ Deno.serve(async (req) => {
 
       for (const query of queries) {
         console.log('Trying CNN search with:', query);
-        const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sources=cnn&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`;
+        // Try both with CNN domain and without source restriction
+        const urls = [
+          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)} AND (cnn.com OR "CNN")&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`,
+          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&domains=cnn.com&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`
+        ];
 
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
+        for (const url of urls) {
+          try {
+            const response = await fetch(url);
             const data = await response.json();
+            
+            if (!response.ok) {
+              console.error('CNN NewsAPI error:', data.message || data.code);
+              continue;
+            }
+            
             if (data.articles && data.articles.length > 0) {
               console.log('CNN search successful with query:', query, 'Found:', data.articles.length);
               return data.articles;
             }
+          } catch (error) {
+            console.error('CNN search error:', error);
           }
-        } catch (error) {
-          console.error('CNN search error:', error);
         }
       }
 
@@ -133,19 +152,28 @@ Deno.serve(async (req) => {
 
       for (const query of queries) {
         console.log('Trying ABC News search with:', query);
-        const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sources=abc-news&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`;
+        const urls = [
+          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&domains=abcnews.go.com&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`,
+          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)} AND (abcnews OR "ABC News")&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`
+        ];
 
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
+        for (const url of urls) {
+          try {
+            const response = await fetch(url);
             const data = await response.json();
+            
+            if (!response.ok) {
+              console.error('ABC NewsAPI error:', data.message || data.code);
+              continue;
+            }
+            
             if (data.articles && data.articles.length > 0) {
               console.log('ABC News search successful with query:', query, 'Found:', data.articles.length);
               return data.articles;
             }
+          } catch (error) {
+            console.error('ABC News search error:', error);
           }
-        } catch (error) {
-          console.error('ABC News search error:', error);
         }
       }
 
@@ -161,19 +189,28 @@ Deno.serve(async (req) => {
 
       for (const query of queries) {
         console.log('Trying Guardian search with:', query);
-        const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&sources=the-guardian-uk&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`;
+        const urls = [
+          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&domains=theguardian.com&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`,
+          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)} AND (theguardian OR "The Guardian")&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`
+        ];
 
-        try {
-          const response = await fetch(url);
-          if (response.ok) {
+        for (const url of urls) {
+          try {
+            const response = await fetch(url);
             const data = await response.json();
+            
+            if (!response.ok) {
+              console.error('Guardian NewsAPI error:', data.message || data.code);
+              continue;
+            }
+            
             if (data.articles && data.articles.length > 0) {
               console.log('Guardian search successful with query:', query, 'Found:', data.articles.length);
               return data.articles;
             }
+          } catch (error) {
+            console.error('Guardian search error:', error);
           }
-        } catch (error) {
-          console.error('Guardian search error:', error);
         }
       }
 
