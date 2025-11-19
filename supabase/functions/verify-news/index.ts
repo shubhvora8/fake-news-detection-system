@@ -297,9 +297,15 @@ Respond in JSON format only:
     // Parse JSON from AI response (handle markdown code blocks if present)
     let verificationResult;
     try {
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/\{[\s\S]*\}/);
-      const jsonStr = jsonMatch ? (jsonMatch[1] || jsonMatch[0]) : content;
-      verificationResult = JSON.parse(jsonStr);
+      // Remove markdown code blocks if present
+      let cleanedContent = content.trim();
+      if (cleanedContent.startsWith('```')) {
+        // Remove opening ```json or ``` 
+        cleanedContent = cleanedContent.replace(/^```(?:json)?\s*\n?/i, '');
+        // Remove closing ```
+        cleanedContent = cleanedContent.replace(/\n?```\s*$/, '');
+      }
+      verificationResult = JSON.parse(cleanedContent.trim());
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
       throw new Error('Invalid JSON response from AI');
