@@ -63,10 +63,10 @@ export class NewsAnalysisService {
       similarity: aiVerification.bbcSimilarity || 0,
       matchingArticles: (aiVerification.bbcArticles || []).map((article: any) => ({
         title: article.title || 'Related Article',
-        url: sourceUrl || 'https://www.bbc.com/news',
-        publishDate: new Date().toISOString().split('T')[0],
+        url: article.url || 'https://www.bbc.com/news',
+        publishDate: article.publishDate || new Date().toISOString().split('T')[0],
         similarity: article.similarity || 0,
-        excerpt: newsContent.substring(0, 150)
+        excerpt: article.excerpt || article.description || newsContent.substring(0, 150)
       }))
     };
 
@@ -75,10 +75,10 @@ export class NewsAnalysisService {
       similarity: aiVerification.cnnSimilarity || 0,
       matchingArticles: (aiVerification.cnnArticles || []).map((article: any) => ({
         title: article.title || 'Related Article',
-        url: sourceUrl || 'https://www.cnn.com',
-        publishDate: new Date().toISOString().split('T')[0],
+        url: article.url || 'https://www.cnn.com',
+        publishDate: article.publishDate || new Date().toISOString().split('T')[0],
         similarity: article.similarity || 0,
-        excerpt: newsContent.substring(0, 150)
+        excerpt: article.excerpt || article.description || newsContent.substring(0, 150)
       }))
     };
 
@@ -87,10 +87,10 @@ export class NewsAnalysisService {
       similarity: aiVerification.abcSimilarity || 0,
       matchingArticles: (aiVerification.abcArticles || []).map((article: any) => ({
         title: article.title || 'Related Article',
-        url: sourceUrl || 'https://abcnews.go.com',
-        publishDate: new Date().toISOString().split('T')[0],
+        url: article.url || 'https://abcnews.go.com',
+        publishDate: article.publishDate || new Date().toISOString().split('T')[0],
         similarity: article.similarity || 0,
-        excerpt: newsContent.substring(0, 150)
+        excerpt: article.excerpt || article.description || newsContent.substring(0, 150)
       }))
     };
 
@@ -99,10 +99,10 @@ export class NewsAnalysisService {
       similarity: aiVerification.guardianSimilarity || 0,
       matchingArticles: (aiVerification.guardianArticles || []).map((article: any) => ({
         title: article.title || 'Related Article',
-        url: sourceUrl || 'https://www.theguardian.com',
-        publishDate: new Date().toISOString().split('T')[0],
+        url: article.url || 'https://www.theguardian.com',
+        publishDate: article.publishDate || new Date().toISOString().split('T')[0],
         similarity: article.similarity || 0,
-        excerpt: newsContent.substring(0, 150)
+        excerpt: article.excerpt || article.description || newsContent.substring(0, 150)
       }))
     };
 
