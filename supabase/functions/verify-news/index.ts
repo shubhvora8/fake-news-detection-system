@@ -247,7 +247,7 @@ URL: ${article.url}
     const abcArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('abc'));
     const guardianArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('guardian'));
 
-    const prompt = `You are a news verification assistant. Compare the user's news content against real articles from BBC, CNN, ABC News, and The Guardian retrieved from NewsAPI.
+    const prompt = `You are a news verification assistant. Compare the user's news content against real articles from major news sources.
 
 User's News Content:
 ${newsContent}
@@ -262,32 +262,46 @@ Found Articles (${articles.length} total):
 
 ${articlesContext}
 
-IMPORTANT INSTRUCTIONS:
-1. For each source where articles were found, carefully compare the user's content with those articles:
-   - Look for matching headlines, topics, events, people, places, and dates
-   - Even if wording differs, check if the core facts and story are the same
-   - If there's substantial overlap (>70% similar story/facts), mark that source as verified TRUE
-   - Calculate similarity score based on how much content overlaps
+CRITICAL INSTRUCTIONS FOR VERIFICATION:
 
-2. If NO articles were found from a source, mark that source as verified=FALSE with 0 similarity
+1. MATCHING CRITERIA (be LIBERAL with matches):
+   - Same topic/event (e.g., Russia-Ukraine war) = HIGH match
+   - Same location mentioned (e.g., Ukraine, Kyiv, Ternopil) = MODERATE match
+   - Same timeframe or date range = MODERATE match
+   - Related events from same category = LOW-MODERATE match
+   - If articles cover the SAME GENERAL STORY even with different specific details = VERIFIED
 
-3. Be generous with matching - news articles are often reworded but cover the same events
+2. VERIFICATION THRESHOLDS:
+   - Mark as VERIFIED=TRUE if articles share 40%+ of the following: topic, location, timeframe, key entities
+   - Articles don't need exact headline matches - covering the same event/topic is enough
+   - Example: User's content about "Russian strikes in Ukraine" matches ANY article about Russian attacks on Ukraine from similar timeframe
+
+3. SIMILARITY SCORING:
+   - 80-100: Exact same event, same details, same sources quoted
+   - 60-79: Same event, similar details, may have different angles
+   - 40-59: Related event, same topic area, same timeframe
+   - 20-39: Same general topic, different specific event
+   - 0-19: Different topics or no meaningful overlap
+
+4. IMPORTANT: If articles were found for a source, they likely relate to the user's content since they came from keyword searches. Give credit for topical relevance.
+
+5. For each matched article, include: title, similarity score (be generous), url, publishDate, and excerpt (first 150 chars of description).
 
 Respond in JSON format only:
 {
-  "bbcVerified": boolean (true if BBC articles match user content),
-  "bbcSimilarity": number (0-100, based on content overlap),
-  "bbcArticles": [{"title": string, "similarity": number, "url": string}],
-  "cnnVerified": boolean (true if CNN articles match user content),
-  "cnnSimilarity": number (0-100, based on content overlap),
-  "cnnArticles": [{"title": string, "similarity": number, "url": string}],
-  "abcVerified": boolean (true if ABC News articles match user content),
-  "abcSimilarity": number (0-100, based on content overlap),
-  "abcArticles": [{"title": string, "similarity": number, "url": string}],
-  "guardianVerified": boolean (true if Guardian articles match user content),
-  "guardianSimilarity": number (0-100, based on content overlap),
-  "guardianArticles": [{"title": string, "similarity": number, "url": string}],
-  "legitimacyScore": number (0-100, higher if content matches real articles),
+  "bbcVerified": boolean,
+  "bbcSimilarity": number (0-100),
+  "bbcArticles": [{"title": string, "similarity": number, "url": string, "publishDate": string, "excerpt": string}],
+  "cnnVerified": boolean,
+  "cnnSimilarity": number (0-100),
+  "cnnArticles": [{"title": string, "similarity": number, "url": string, "publishDate": string, "excerpt": string}],
+  "abcVerified": boolean,
+  "abcSimilarity": number (0-100),
+  "abcArticles": [{"title": string, "similarity": number, "url": string, "publishDate": string, "excerpt": string}],
+  "guardianVerified": boolean,
+  "guardianSimilarity": number (0-100),
+  "guardianArticles": [{"title": string, "similarity": number, "url": string, "publishDate": string, "excerpt": string}],
+  "legitimacyScore": number (0-100, average of all source similarities),
   "topics": string[],
   "locations": string[],
   "dates": string[],
@@ -307,6 +321,10 @@ Respond in JSON format only:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful news verification assistant. When comparing articles, be generous with matches - articles covering the same general event or topic should be considered related even if specific details differ. Return only valid JSON without markdown formatting.'
+          },
           {
             role: 'user',
             content: prompt
