@@ -57,61 +57,97 @@ export class NewsAnalysisService {
     };
     relatability.overallScore = Math.round((relatability.rssVerification.score + relatability.location.score + relatability.timestamp.score + relatability.event.score) / 4);
 
-    // Use AI verification results
-    const bbcMatch = {
-      found: aiVerification.bbcVerified || false,
-      similarity: aiVerification.bbcSimilarity || 0,
-      matchingArticles: (aiVerification.bbcArticles || []).map((article: any) => ({
+    // Use AI verification results together with the original source URL domain
+    const normalizedSource = (sourceUrl || '').toLowerCase();
+    const isBBCSource = normalizedSource.includes('bbc.com');
+    const isCNNSource = normalizedSource.includes('cnn.com');
+    const isABCSource = normalizedSource.includes('abcnews.go.com');
+    const isGuardianSource = normalizedSource.includes('theguardian.com');
+
+    const buildArticlesWithFallback = (
+      aiArticles: any[] | undefined,
+      fallbackUrl: string
+    ) => {
+      const articles = (aiArticles || []).map((article: any) => ({
         title: article.title || 'Related Article',
-        url: article.url || 'https://www.bbc.com/news',
+        url: article.url || fallbackUrl,
         publishDate: article.publishDate || new Date().toISOString().split('T')[0],
         similarity: article.similarity || 0,
         excerpt: article.excerpt || article.description || newsContent.substring(0, 150)
-      }))
+      }));
+      return articles;
+    };
+
+    const bbcArticles = buildArticlesWithFallback(aiVerification.bbcArticles, 'https://www.bbc.com/news');
+    const cnnArticles = buildArticlesWithFallback(aiVerification.cnnArticles, 'https://www.cnn.com');
+    const abcArticles = buildArticlesWithFallback(aiVerification.abcArticles, 'https://abcnews.go.com');
+    const guardianArticles = buildArticlesWithFallback(aiVerification.guardianArticles, 'https://www.theguardian.com');
+
+    const bbcMatch = {
+      found: Boolean(aiVerification.bbcVerified || bbcArticles.length > 0 || isBBCSource),
+      similarity: aiVerification.bbcSimilarity ?? (isBBCSource ? 90 : (bbcArticles.length > 0 ? 70 : 0)),
+      matchingArticles: bbcArticles.length > 0
+        ? bbcArticles
+        : isBBCSource
+          ? [{
+              title: 'Original BBC article provided by user',
+              url: sourceUrl!,
+              publishDate: new Date().toISOString().split('T')[0],
+              similarity: 90,
+              excerpt: newsContent.substring(0, 150)
+            }]
+          : []
     };
 
     const cnnMatch = {
-      found: aiVerification.cnnVerified || false,
-      similarity: aiVerification.cnnSimilarity || 0,
-      matchingArticles: (aiVerification.cnnArticles || []).map((article: any) => ({
-        title: article.title || 'Related Article',
-        url: article.url || 'https://www.cnn.com',
-        publishDate: article.publishDate || new Date().toISOString().split('T')[0],
-        similarity: article.similarity || 0,
-        excerpt: article.excerpt || article.description || newsContent.substring(0, 150)
-      }))
+      found: Boolean(aiVerification.cnnVerified || cnnArticles.length > 0 || isCNNSource),
+      similarity: aiVerification.cnnSimilarity ?? (isCNNSource ? 90 : (cnnArticles.length > 0 ? 70 : 0)),
+      matchingArticles: cnnArticles.length > 0
+        ? cnnArticles
+        : isCNNSource
+          ? [{
+              title: 'Original CNN article provided by user',
+              url: sourceUrl!,
+              publishDate: new Date().toISOString().split('T')[0],
+              similarity: 90,
+              excerpt: newsContent.substring(0, 150)
+            }]
+          : []
     };
 
     const abcMatch = {
-      found: aiVerification.abcVerified || false,
-      similarity: aiVerification.abcSimilarity || 0,
-      matchingArticles: (aiVerification.abcArticles || []).map((article: any) => ({
-        title: article.title || 'Related Article',
-        url: article.url || 'https://abcnews.go.com',
-        publishDate: article.publishDate || new Date().toISOString().split('T')[0],
-        similarity: article.similarity || 0,
-        excerpt: article.excerpt || article.description || newsContent.substring(0, 150)
-      }))
+      found: Boolean(aiVerification.abcVerified || abcArticles.length > 0 || isABCSource),
+      similarity: aiVerification.abcSimilarity ?? (isABCSource ? 90 : (abcArticles.length > 0 ? 70 : 0)),
+      matchingArticles: abcArticles.length > 0
+        ? abcArticles
+        : isABCSource
+          ? [{
+              title: 'Original ABC News article provided by user',
+              url: sourceUrl!,
+              publishDate: new Date().toISOString().split('T')[0],
+              similarity: 90,
+              excerpt: newsContent.substring(0, 150)
+            }]
+          : []
     };
 
     const guardianMatch = {
-      found: aiVerification.guardianVerified || false,
-      similarity: aiVerification.guardianSimilarity || 0,
-      matchingArticles: (aiVerification.guardianArticles || []).map((article: any) => ({
-        title: article.title || 'Related Article',
-        url: article.url || 'https://www.theguardian.com',
-        publishDate: article.publishDate || new Date().toISOString().split('T')[0],
-        similarity: article.similarity || 0,
-        excerpt: article.excerpt || article.description || newsContent.substring(0, 150)
-      }))
+      found: Boolean(aiVerification.guardianVerified || guardianArticles.length > 0 || isGuardianSource),
+      similarity: aiVerification.guardianSimilarity ?? (isGuardianSource ? 90 : (guardianArticles.length > 0 ? 70 : 0)),
+      matchingArticles: guardianArticles.length > 0
+        ? guardianArticles
+        : isGuardianSource
+          ? [{
+              title: 'Original Guardian article provided by user',
+              url: sourceUrl!,
+              publishDate: new Date().toISOString().split('T')[0],
+              similarity: 90,
+              excerpt: newsContent.substring(0, 150)
+            }]
+          : []
     };
 
-    const isTrustedSource = sourceUrl && (
-      sourceUrl.toLowerCase().includes('bbc.com') ||
-      sourceUrl.toLowerCase().includes('cnn.com') ||
-      sourceUrl.toLowerCase().includes('abcnews.go.com') ||
-      sourceUrl.toLowerCase().includes('theguardian.com')
-    );
+    const isTrustedSource = sourceUrl && (isBBCSource || isCNNSource || isABCSource || isGuardianSource);
 
     const legitimacy = {
       bbcVerification: bbcMatch,
