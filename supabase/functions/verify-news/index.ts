@@ -264,28 +264,35 @@ ${articlesContext}
 
 CRITICAL INSTRUCTIONS FOR VERIFICATION:
 
-1. MATCHING CRITERIA (be LIBERAL with matches):
-   - Same topic/event (e.g., Russia-Ukraine war) = HIGH match
-   - Same location mentioned (e.g., Ukraine, Kyiv, Ternopil) = MODERATE match
+1. MATCHING CRITERIA (be VERY LIBERAL with matches):
+   - Same topic/event (e.g., Russia-Ukraine war, Gaza conflict, political scandal) = HIGH match
+   - Same location mentioned (e.g., Ukraine, Gaza, Washington) = MODERATE match
    - Same timeframe or date range = MODERATE match
-   - Related events from same category = LOW-MODERATE match
+   - Related events from same category = MODERATE match
    - If articles cover the SAME GENERAL STORY even with different specific details = VERIFIED
 
-2. VERIFICATION THRESHOLDS:
-   - Mark as VERIFIED=TRUE if articles share 40%+ of the following: topic, location, timeframe, key entities
-   - Articles don't need exact headline matches - covering the same event/topic is enough
-   - Example: User's content about "Russian strikes in Ukraine" matches ANY article about Russian attacks on Ukraine from similar timeframe
+2. VERIFICATION THRESHOLDS (use these generously):
+   - Mark as VERIFIED=TRUE if articles are about the SAME TOPIC
+   - Articles don't need exact matches - covering the same event/topic is sufficient
+   - Example: User's content about "Israeli strikes in Gaza" matches ANY article about Israel-Gaza conflict
 
-3. SIMILARITY SCORING:
-   - 80-100: Exact same event, same details, same sources quoted
-   - 60-79: Same event, similar details, may have different angles
-   - 40-59: Related event, same topic area, same timeframe
-   - 20-39: Same general topic, different specific event
-   - 0-19: Different topics or no meaningful overlap
+3. SIMILARITY SCORING (be GENEROUS - articles found via keyword search are already topically related):
+   - If articles found AND topic matches: MINIMUM 65% similarity (start here)
+   - 80-100: Exact same event with matching details
+   - 65-79: Same event/topic, details may vary
+   - 50-64: Related topic, similar timeframe
+   - 30-49: Same general category but different specific event
+   - 0-29: Completely different topics (use ONLY if truly unrelated)
 
-4. IMPORTANT: If articles were found for a source, they likely relate to the user's content since they came from keyword searches. Give credit for topical relevance.
+4. IMPORTANT: Articles were found through keyword search, so they're already topically relevant. Don't score below 60% unless articles are truly about different topics.
 
-5. For each matched article, include: title, similarity score (be generous), url, publishDate, and excerpt (first 150 chars of description).
+5. LEGITIMACY SCORE CALCULATION:
+   - If 3+ sources verified: 75-95
+   - If 2 sources verified: 70-85
+   - If 1 source verified: 60-75
+   - If 0 sources verified: 20-40
+
+6. For each matched article, include: title, similarity score (minimum 65 if topic matches), url, publishDate, and excerpt (first 150 chars).
 
 Respond in JSON format only:
 {

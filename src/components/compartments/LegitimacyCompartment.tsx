@@ -18,8 +18,8 @@ export const LegitimacyCompartment = ({ data, isLoading }: LegitimacyCompartment
   };
 
   const getScoreBadge = (score: number) => {
-    if (score >= 70) return "VERIFIED LEGITIMATE";
-    if (score >= 40) return "PARTIALLY VERIFIED";
+    if (score >= 60) return "VERIFIED LEGITIMATE";
+    if (score >= 35) return "PARTIALLY VERIFIED";
     return "UNVERIFIED";
   };
 
