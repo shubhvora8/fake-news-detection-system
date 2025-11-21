@@ -356,8 +356,7 @@ Respond in JSON format only:
       throw new Error('No content in AI response');
     }
 
-    // Parse JSON from AI response (handle markdown code blocks if present)
-    let verificationResult;
+    let verificationResult: any;
     try {
       // Remove markdown code blocks if present
       let cleanedContent = content.trim();
@@ -367,7 +366,38 @@ Respond in JSON format only:
         // Remove closing ```
         cleanedContent = cleanedContent.replace(/\n?```\s*$/, '');
       }
-      verificationResult = JSON.parse(cleanedContent.trim());
+
+      cleanedContent = cleanedContent.trim();
+      verificationResult = JSON.parse(cleanedContent);
+
+      // Normalize unexpected shapes (e.g. empty array or partial object)
+      if (!verificationResult || Array.isArray(verificationResult)) {
+        console.warn('AI returned non-object verification result, normalizing to defaults:', verificationResult);
+        verificationResult = {};
+      }
+
+      // Ensure all expected fields exist with safe defaults
+      verificationResult = {
+        bbcVerified: Boolean(verificationResult.bbcVerified),
+        bbcSimilarity: Number(verificationResult.bbcSimilarity ?? 0),
+        bbcArticles: Array.isArray(verificationResult.bbcArticles) ? verificationResult.bbcArticles : [],
+        cnnVerified: Boolean(verificationResult.cnnVerified),
+        cnnSimilarity: Number(verificationResult.cnnSimilarity ?? 0),
+        cnnArticles: Array.isArray(verificationResult.cnnArticles) ? verificationResult.cnnArticles : [],
+        abcVerified: Boolean(verificationResult.abcVerified),
+        abcSimilarity: Number(verificationResult.abcSimilarity ?? 0),
+        abcArticles: Array.isArray(verificationResult.abcArticles) ? verificationResult.abcArticles : [],
+        guardianVerified: Boolean(verificationResult.guardianVerified),
+        guardianSimilarity: Number(verificationResult.guardianSimilarity ?? 0),
+        guardianArticles: Array.isArray(verificationResult.guardianArticles) ? verificationResult.guardianArticles : [],
+        legitimacyScore: Number(verificationResult.legitimacyScore ?? 0),
+        topics: Array.isArray(verificationResult.topics) ? verificationResult.topics : [],
+        locations: Array.isArray(verificationResult.locations) ? verificationResult.locations : [],
+        dates: Array.isArray(verificationResult.dates) ? verificationResult.dates : [],
+        credibilityIndicators: Array.isArray(verificationResult.credibilityIndicators) ? verificationResult.credibilityIndicators : [],
+        redFlags: Array.isArray(verificationResult.redFlags) ? verificationResult.redFlags : [],
+        overallAssessment: typeof verificationResult.overallAssessment === 'string' ? verificationResult.overallAssessment : ''
+      };
     } catch (parseError) {
       console.error('Failed to parse AI response:', content);
       throw new Error('Invalid JSON response from AI');
