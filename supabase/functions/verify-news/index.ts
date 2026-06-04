@@ -151,10 +151,11 @@ Published: ${article.publishedAt}
 URL: ${article.url}
 `).join('\n---\n') : 'No matching articles found in NewsAPI.';
 
-    const bbcArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('bbc'));
-    const cnnArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('cnn'));
-    const abcArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('abc'));
-    const guardianArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('guardian'));
+    // Use the per-source arrays directly (already URL-domain filtered above)
+    const bbcArticlesContext = bbcArticles;
+    const cnnArticlesContext = cnnArticles;
+    const abcArticlesContext = abcArticles;
+    const guardianArticlesContext = guardianArticles;
 
     const prompt = `You are a news verification assistant. Compare the user's news content against real articles from major news sources.
 
