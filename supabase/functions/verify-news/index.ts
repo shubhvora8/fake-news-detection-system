@@ -67,162 +67,71 @@ Deno.serve(async (req) => {
     const searchTerms = extractSearchTerms(newsContent);
     console.log('Search terms:', searchTerms);
 
-    // Try multiple search strategies for better results
-    const tryBBCSearch = async (): Promise<NewsArticle[]> => {
-      const queries = [
-        searchTerms.headline.substring(0, 100), // Try headline first
-        searchTerms.entities, // Try proper nouns
-        searchTerms.keywords // Try keywords as fallback
-      ].filter(q => q && q.length > 5);
-
-      for (const query of queries) {
-        console.log('Trying BBC search with:', query);
-        const urls = [
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&domains=bbc.com,bbc.co.uk&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`,
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)} AND (bbc.com OR "BBC")&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`
-        ];
-
-        for (const url of urls) {
-          try {
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (!response.ok) {
-              console.error('BBC NewsAPI error:', data.message || data.code);
-              continue;
-            }
-            
-            if (data.articles && data.articles.length > 0) {
-              console.log('BBC search successful with query:', query, 'Found:', data.articles.length);
-              return data.articles;
-            }
-          } catch (error) {
-            console.error('BBC search error:', error);
-          }
-        }
-      }
-
-      return [];
-    };
-
-    const tryCNNSearch = async (): Promise<NewsArticle[]> => {
+    // Strict per-source search: only query NewsAPI with domain restriction,
+    // then defensively filter results so aggregator/syndication noise can't
+    // sneak in as a "BBC/CNN/ABC/Guardian" match.
+    const searchSource = async (
+      sourceLabel: string,
+      domains: string[]
+    ): Promise<NewsArticle[]> => {
       const queries = [
         searchTerms.headline.substring(0, 100),
         searchTerms.entities,
-        searchTerms.keywords
-      ].filter(q => q && q.length > 5);
+        searchTerms.keywords,
+      ].filter((q) => q && q.length > 5);
+
+      const domainParam = domains.join(',');
 
       for (const query of queries) {
-        console.log('Trying CNN search with:', query);
-        // Try both with CNN domain and without source restriction
-        const urls = [
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)} AND (cnn.com OR "CNN")&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`,
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&domains=cnn.com&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`
-        ];
+        console.log(`Trying ${sourceLabel} search with:`, query);
+        const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(
+          query
+        )}&domains=${domainParam}&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`;
 
-        for (const url of urls) {
-          try {
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (!response.ok) {
-              console.error('CNN NewsAPI error:', data.message || data.code);
-              continue;
-            }
-            
-            if (data.articles && data.articles.length > 0) {
-              console.log('CNN search successful with query:', query, 'Found:', data.articles.length);
-              return data.articles;
-            }
-          } catch (error) {
-            console.error('CNN search error:', error);
+        try {
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (!response.ok) {
+            console.error(`${sourceLabel} NewsAPI error:`, data.message || data.code);
+            continue;
           }
+
+          const raw: NewsArticle[] = Array.isArray(data.articles) ? data.articles : [];
+          // Defensive filter: only keep articles whose URL host is actually
+          // one of the requested domains (guards against aggregator results).
+          const filtered = raw.filter((a) => {
+            try {
+              const host = new URL(a.url).hostname.toLowerCase();
+              return domains.some((d) => host === d || host.endsWith(`.${d}`));
+            } catch {
+              return false;
+            }
+          });
+
+          if (filtered.length > 0) {
+            console.log(
+              `${sourceLabel} search successful with query:`,
+              query,
+              'Found:',
+              filtered.length
+            );
+            return filtered;
+          }
+        } catch (error) {
+          console.error(`${sourceLabel} search error:`, error);
         }
       }
 
       return [];
     };
 
-    const tryABCSearch = async (): Promise<NewsArticle[]> => {
-      const queries = [
-        searchTerms.headline.substring(0, 100),
-        searchTerms.entities,
-        searchTerms.keywords
-      ].filter(q => q && q.length > 5);
-
-      for (const query of queries) {
-        console.log('Trying ABC News search with:', query);
-        const urls = [
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&domains=abcnews.go.com&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`,
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)} AND (abcnews OR "ABC News")&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`
-        ];
-
-        for (const url of urls) {
-          try {
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (!response.ok) {
-              console.error('ABC NewsAPI error:', data.message || data.code);
-              continue;
-            }
-            
-            if (data.articles && data.articles.length > 0) {
-              console.log('ABC News search successful with query:', query, 'Found:', data.articles.length);
-              return data.articles;
-            }
-          } catch (error) {
-            console.error('ABC News search error:', error);
-          }
-        }
-      }
-
-      return [];
-    };
-
-    const tryGuardianSearch = async (): Promise<NewsArticle[]> => {
-      const queries = [
-        searchTerms.headline.substring(0, 100),
-        searchTerms.entities,
-        searchTerms.keywords
-      ].filter(q => q && q.length > 5);
-
-      for (const query of queries) {
-        console.log('Trying Guardian search with:', query);
-        const urls = [
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)}&domains=theguardian.com&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`,
-          `https://newsapi.org/v2/everything?q=${encodeURIComponent(query)} AND (theguardian OR "The Guardian")&sortBy=relevancy&pageSize=10&language=en&apiKey=${NEWSAPI_KEY}`
-        ];
-
-        for (const url of urls) {
-          try {
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (!response.ok) {
-              console.error('Guardian NewsAPI error:', data.message || data.code);
-              continue;
-            }
-            
-            if (data.articles && data.articles.length > 0) {
-              console.log('Guardian search successful with query:', query, 'Found:', data.articles.length);
-              return data.articles;
-            }
-          } catch (error) {
-            console.error('Guardian search error:', error);
-          }
-        }
-      }
-
-      return [];
-    };
-
-    console.log('Fetching from BBC, CNN, ABC News, and Guardian with multiple strategies...');
+    console.log('Fetching from BBC, CNN, ABC News, and Guardian (domain-restricted)...');
     const [bbcArticles, cnnArticles, abcArticles, guardianArticles] = await Promise.all([
-      tryBBCSearch(),
-      tryCNNSearch(),
-      tryABCSearch(),
-      tryGuardianSearch()
+      searchSource('BBC', ['bbc.com', 'bbc.co.uk']),
+      searchSource('CNN', ['cnn.com']),
+      searchSource('ABC News', ['abcnews.go.com']),
+      searchSource('Guardian', ['theguardian.com']),
     ]);
 
     const articles: NewsArticle[] = [...bbcArticles, ...cnnArticles, ...abcArticles, ...guardianArticles];
@@ -242,10 +151,11 @@ Published: ${article.publishedAt}
 URL: ${article.url}
 `).join('\n---\n') : 'No matching articles found in NewsAPI.';
 
-    const bbcArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('bbc'));
-    const cnnArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('cnn'));
-    const abcArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('abc'));
-    const guardianArticlesContext = articles.filter(a => a.source.name?.toLowerCase().includes('guardian'));
+    // Use the per-source arrays directly (already URL-domain filtered above)
+    const bbcArticlesContext = bbcArticles;
+    const cnnArticlesContext = cnnArticles;
+    const abcArticlesContext = abcArticles;
+    const guardianArticlesContext = guardianArticles;
 
     const prompt = `You are a news verification assistant. Compare the user's news content against real articles from major news sources.
 
